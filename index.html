@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🐻 Revelación de Sexo — ¡Estás Invitado!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&family=Great+Vibes&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/TextPlugin.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Lato', sans-serif;
+      background: #FDF6F0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: #3D2B1F;
+    }
+
+    /* ======= SCREENS ======= */
+    .screen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; overflow-y: auto;
+    }
+    .screen.active { opacity: 1; pointer-events: all; }
+
+    /* ======= LOADING ======= */
+    #loading {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(135deg, #FDE8EE, #EAF4FB);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 200; gap: 1.5rem;
+    }
+    .loading-text {
+      font-family: 'Great Vibes', cursive; font-size: 2.2rem; color: #5C3D2E;
+      animation: pulse-load 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse-load { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+    /* ======= BACKGROUND ELEMENTS (STARS, BEARS, PARTICLES) ======= */
+    #particles-canvas {
+      position: fixed; top:0; left:0; width:100%; height:100%;
+      pointer-events:none; z-index:49;
+    }
+    .bg-elements {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 50; overflow: hidden;
+    }
+    .bg-floating-item {
+      position: absolute; opacity: 0.35;
+      animation: float-up linear infinite;
+    }
+    @keyframes float-up {
+      0% { transform: translateY(110vh) rotate(0deg); }
+      100% { transform: translateY(-20vh) rotate(360deg); }
+    }
+
+    /* ======= INTRO SCREEN ======= */
+    #screen-intro {
+      background: linear-gradient(160deg, #FDF4F6 0%, #FAF0E6 35%, #F0F6FA 70%, #FDF4F6 100%);
+      background-size: 400% 400%; animation: bg-shift 12s ease infinite; z-index: 10;
+      padding: 1.5rem 1rem; text-align: center;
+    }
+    @keyframes bg-shift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+
+    .intro-inner {
+      position: relative; z-index: 2; display: flex; flex-direction: column;
+      align-items: center; gap: 1rem; max-width: 500px; width: 100%;
+    }
+
+    /* Main bears stage - FIXED SPACING */
+    .bear-stage {
+      position: relative; width: 100%; max-width: 420px; height: 200px;
+      display: flex; align-items: flex-end; justify-content: center;
+      margin-top: 1.5rem; margin-bottom: 1rem;
+    }
+    
+    /* Bear wrapper — holds image + SVG eye-blink overlay */
+    .bear-wrap {
+      position: absolute; bottom: 0;
+      filter: drop-shadow(0px 12px 10px rgba(0,0,0,0.18));
+    }
+    .bear-wrap img { width: 100%; height: 100%; display: block; object-fit: contain; }
+
+    /* SVG eyes overlay: absolutely positioned on top of bear image */
+    .bear-eyes-svg {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none; overflow: visible;
+    }
+
+    .bear-left  { left: 8%;  width: 165px; height: 165px; z-index: 2; animation: sway-l 4s ease-in-out infinite; }
+    .bear-right { right: 8%; width: 165px; height: 165px; z-index: 2; animation: sway-r 4.5s ease-in-out infinite; }
+
+    /* --- Body movement keyframes --- */
+    @keyframes sway-l {
+      0%,100% { transform: rotate(-4deg) translateY(0); }
+      50%      { transform: rotate(3deg)  translateY(-10px); }
+    }
+    @keyframes sway-r {
+      0%,100% { transform: rotate(4deg)  translateY(0); }
+      50%      { transform: rotate(-3deg) translateY(-10px); }
+    }
+    @keyframes float-c {
+      0%,100% { transform: translateX(-50%) translateY(0); }
+      50%      { transform: translateX(-50%) translateY(-12px); }
+    }
+
+    /* Eye blink removed — eyes always closed overlay hidden */
+
+    /* Titles */
+    .intro-subtitle { font-family: 'Great Vibes', cursive; font-size: clamp(1.8rem, 6vw, 2.5rem); color: #8C6A53; line-height: 1; margin-bottom: 0.5rem; }
+    .intro-title { font-family: 'Playfair Display', serif; font-size: clamp(2.4rem, 8vw, 3.8rem); font-weight: 700; color: #3D2B1F; line-height: 1.1; }
+    .intro-title .pink { color: #D4607A; }
+    .intro-title .blue { color: #5B9FD4; }
+    
+    .intro-msg { 
+      font-family: 'Lato', sans-serif; font-size: clamp(1.1rem, 4vw, 1.3rem); 
+      color: #8C6A53; line-height: 1.6; max-width: 400px; margin: 0 auto;
+    }
+    .pink-text { color: #D4607A; font-weight: bold; font-family: 'Playfair Display', serif; font-size: clamp(1.4rem, 5vw, 1.8rem); }
+    .blue-text { color: #5B9FD4; font-weight: bold; font-family: 'Playfair Display', serif; font-size: clamp(1.4rem, 5vw, 1.8rem); }
+
+    /* Buttons */
+    .btn-open, .btn-confirm {
+      background: linear-gradient(135deg, #D4607A 0%, #B5835A 50%, #5B9FD4 100%);
+      background-size: 200% 200%; color: white; border: none;
+      padding: 1rem 2.5rem; border-radius: 50px;
+      font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 700;
+      cursor: pointer; box-shadow: 0 10px 25px rgba(181, 131, 90, 0.4);
+      transition: transform 0.25s, box-shadow 0.25s; animation: btn-gradient 5s ease infinite;
+    }
+    @keyframes btn-gradient { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+    .btn-open:hover, .btn-confirm:hover { transform: translateY(-4px) scale(1.03); box-shadow: 0 15px 35px rgba(181, 131, 90, 0.5); }
+    
+    /* ======= SCREEN 2: INVITE ======= */
+    #screen-invite {
+      background: linear-gradient(155deg, #FDF4F6 0%, #F5F0E6 40%, #F0F6FA 100%); z-index: 9;
+      padding: 1rem; align-items: center; background-attachment: fixed;
+    }
+
+    .invite-card {
+      background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+      border-radius: 32px; padding: 2.5rem 2rem; max-width: 460px; width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.08), 0 0 0 2px rgba(212,175,55,0.15);
+      position: relative; z-index: 2; text-align: center;
+    }
+
+    .invite-tag {
+      display: inline-block; background: linear-gradient(135deg, #F4A7B9, #A7C7E7);
+      color: white; font-size: 0.75rem; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; padding: 0.4rem 1.2rem; border-radius: 20px;
+      margin-bottom: 0.8rem;
+    }
+
+    .invite-title { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 6vw, 2.6rem); font-weight: 700; color: #3D2B1F; }
+    .invite-subtitle { font-family: 'Great Vibes', cursive; font-size: 1.5rem; color: #D4607A; margin-bottom: 1.5rem; }
+
+    /* FIXED SPACING for Invite Card Bears */
+    .card-bears-stage {
+      position: relative; width: 100%; height: 140px; margin-bottom: 1.5rem;
+    }
+    .card-bear { position: absolute; bottom: 0; filter: drop-shadow(0px 8px 6px rgba(0,0,0,0.1)); }
+    .card-bear-l { left: 15%; width: 110px; height: 110px; z-index: 1; animation: sway-l 3s infinite; }
+    .card-bear-r { right: 15%; width: 110px; height: 110px; z-index: 1; animation: sway-r 3.5s infinite; }
+
+    /* Event Details */
+    .event-details {
+      background: linear-gradient(135deg, rgba(244,167,185,0.08), rgba(167,199,231,0.08));
+      border-radius: 20px; padding: 1.2rem; border: 1px solid rgba(212,175,55,0.2); margin-bottom: 1.5rem;
+    }
+    .detail-item { display: flex; align-items: center; gap: 1rem; padding: 0.5rem 0; text-align: left; }
+    .detail-item + .detail-item { border-top: 1px dashed rgba(212,175,55,0.2); }
+    .detail-icon { font-size: 1.5rem; width: 40px; text-align: center; }
+    .detail-text span { display: block; font-size: 0.75rem; color: #9C6B37; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+    .detail-text strong { font-family: 'Playfair Display', serif; font-size: 1.05rem; color: #3D2B1F; }
+
+    /* Form */
+    .form-group { text-align: left; margin-bottom: 1.2rem; }
+    .form-label { display: block; font-size: 0.8rem; font-weight: 700; color: #9C6B37; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 0.5rem; }
+    .form-input {
+      width: 100%; padding: 1rem; border-radius: 16px; border: 2px solid rgba(212,175,55,0.2);
+      background: #FDF6F0; font-family: 'Lato', sans-serif; font-size: 1rem; color: #3D2B1F; outline: none; transition: 0.3s;
+    }
+    .form-input:focus { border-color: #D4607A; box-shadow: 0 0 0 4px rgba(212,96,122,0.1); }
+
+    /* RSVP */
+    .rsvp-buttons { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 1.5rem; }
+    .rsvp-btn {
+      padding: 0.8rem 0.2rem; border-radius: 16px; border: 2px solid rgba(212,175,55,0.15);
+      background: white; cursor: pointer; font-family: 'Lato', sans-serif; font-weight: 700; font-size: 0.85rem;
+      display: flex; flex-direction: column; align-items: center; gap: 0.4rem; transition: 0.2s;
+    }
+    .rsvp-btn .emoji { font-size: 1.8rem; transition: 0.3s; }
+    .rsvp-btn:hover { transform: translateY(-3px); border-color: #D4AF37; }
+    .rsvp-btn.sel-yes { background: #F0F6FA; border-color: #5B9FD4; color: #5B9FD4; transform: translateY(-3px); }
+    .rsvp-btn.sel-no { background: #FDF4F6; border-color: #D4607A; color: #D4607A; transform: translateY(-3px); }
+    .rsvp-btn.sel-maybe { background: #FFF9E6; border-color: #D4AF37; color: #9C6B37; transform: translateY(-3px); }
+
+    .error-msg { color: #D4607A; font-size: 0.85rem; margin-top: -0.8rem; margin-bottom: 0.8rem; display: none; text-align: left; font-weight: 700; }
+    .error-msg.show { display: block; }
+    .btn-confirm { width: 100%; border-radius: 16px; padding: 1.1rem; }
+
+    /* ======= SCREEN 3: CONFIRM ======= */
+    #screen-confirm { z-index: 8; padding: 2rem 1rem; text-align: center; }
+    .confirm-inner { max-width: 460px; width: 100%; position: relative; z-index: 2; }
+    
+    .confirm-name { font-family: 'Great Vibes', cursive; font-size: clamp(2.5rem, 9vw, 3.8rem); line-height: 1; margin-bottom: 0.5rem; }
+    .c-blue { color: #5B9FD4; } .c-pink { color: #D4607A; } .c-gold { color: #9C6B37; }
+    
+    .confirm-title { font-family: 'Playfair Display', serif; font-size: clamp(1.6rem, 6vw, 2.2rem); color: #3D2B1F; font-weight: 700; margin-bottom: 1rem; }
+    .confirm-msg { font-size: 1.05rem; color: #8C6A53; line-height: 1.6; max-width: 360px; margin: 0 auto 1.5rem; }
+
+    /* Reaction bears */
+    .reaction-stage { display: flex; justify-content: center; align-items: flex-end; height: 160px; margin-bottom: 1rem; position: relative; }
+    .react-bear { position: absolute; bottom: 0; filter: drop-shadow(0px 15px 10px rgba(0,0,0,0.2)); }
+    
+    .dance-l { left: 50%; transform: translateX(-100%); width: 150px; height: 150px; animation: dance-l-anim 0.6s infinite alternate; }
+    .dance-r { left: 50%; transform: translateX(0%); width: 150px; height: 150px; animation: dance-r-anim 0.6s infinite alternate 0.1s; }
+    
+    @keyframes dance-l-anim { from{transform:translateX(-100%) rotate(-8deg) translateY(0)} to{transform:translateX(-100%) rotate(4deg) translateY(-15px)} }
+    @keyframes dance-r-anim { from{transform:translateX(0%) rotate(8deg) translateY(0)} to{transform:translateX(0%) rotate(-4deg) translateY(-15px)} }
+
+    .sad-bear { left: 50%; transform: translateX(-50%); width: 160px; height: 160px; animation: sad-rock 3s infinite; }
+    @keyframes sad-rock { 0%,100%{transform:translateX(-50%) rotate(0deg)} 25%{transform:translateX(-50%) rotate(-4deg)} 75%{transform:translateX(-50%) rotate(4deg)} }
+
+    .think-bear { left: 50%; transform: translateX(-50%); width: 160px; height: 160px; animation: float-c 4s infinite; }
+
+    /* Inner animations for tears and think bubble */
+    .sad-tear { animation: tear-drop 1.5s infinite ease-in; transform-origin: center; }
+    @keyframes tear-drop {
+      0% { transform: translateY(0); opacity: 0.8; }
+      70% { transform: translateY(12px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 0; }
+    }
+    .think-bubble-group { animation: bubble-float 2.5s infinite ease-in-out; transform-origin: center; }
+    @keyframes bubble-float {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-8px) scale(1.05); }
+    }
+
+    .share-section { margin-top: 2rem; }
+    .share-btns { display: flex; gap: 1rem; justify-content: center; }
+    .share-btn {
+      display: flex; align-items: center; gap: 0.5rem; padding: 0.8rem 1.5rem; border-radius: 50px;
+      border: none; cursor: pointer; font-family: 'Lato', sans-serif; font-weight: 700; font-size: 0.95rem; transition: 0.2s;
+    }
+    .share-btn:hover { transform: translateY(-3px) scale(1.05); }
+    .share-btn.wa { background: #25D366; color: white; box-shadow: 0 5px 15px rgba(37,211,102,0.3); }
+    .share-btn.cp { background: white; color: #9C6B37; border: 2px solid #EAD1B7; }
+
+    .hearts-layer { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1; overflow:hidden; }
+    .fheart { position:absolute; bottom:-60px; animation:heart-rise linear forwards; opacity:0; }
+    @keyframes heart-rise { 0%{transform:translateY(0) scale(0.8);opacity:0} 10%{opacity:1} 90%{opacity:0.8} 100%{transform:translateY(-110vh) scale(1.2);opacity:0} }
+
+    /* ======= RESPONSIVE MÓVIL ======= */
+
+    /* Pantallas medianas (≤ 480px — mayoría de celulares) */
+    @media (max-width: 480px) {
+      /* Screen 1 — Intro */
+      #screen-intro { padding: 1rem 0.75rem; }
+
+      .intro-inner { gap: 0.6rem; height: 88vh !important; }
+
+      .intro-msg { font-size: clamp(0.95rem, 3.8vw, 1.15rem); padding: 0 0.5rem; }
+      .pink-text, .blue-text { font-size: clamp(1.2rem, 5vw, 1.6rem); }
+
+      /* Bears en Screen 1 */
+      .bear-stage {
+        height: 170px;
+        max-width: 100%;
+      }
+      .bear-left  { width: 130px; height: 130px; left: 5%; }
+      .bear-right { width: 130px; height: 130px; right: 5%; }
+
+      /* Slide 6 con Niño/Niña — más compacto */
+      #slide-6 { top: 8% !important; }
+      #slide-6 p:last-child { font-size: clamp(1.1rem, 4.5vw, 1.5rem) !important; margin-top: 0.5rem !important; }
+
+      /* Botón abrir invitación */
+      .btn-open { font-size: 1rem; padding: 0.85rem 2rem; }
+
+      /* Screen 2 — Invite card */
+      #screen-invite { padding: 0.75rem 0.5rem; justify-content: flex-start; padding-top: 1rem; }
+      .invite-card { padding: 1.5rem 1.2rem; border-radius: 24px; }
+      .invite-title { font-size: clamp(1.6rem, 6vw, 2rem); }
+      .invite-subtitle { font-size: 1.2rem; margin-bottom: 1rem; }
+
+      /* Bears Screen 2 */
+      .card-bears-stage { height: 120px; }
+      .card-bear-l { left: 10%; width: 90px; height: 90px; }
+      .card-bear-r { right: 10%; width: 90px; height: 90px; }
+
+      /* Detalles del evento */
+      .event-details { padding: 0.9rem; }
+      .detail-icon { font-size: 1.2rem; width: 32px; }
+      .detail-text strong { font-size: 0.95rem; }
+
+      /* RSVP — botones más compactos */
+      .rsvp-buttons { gap: 0.4rem; }
+      .rsvp-btn { padding: 0.65rem 0.1rem; font-size: 0.8rem; border-radius: 12px; }
+      .rsvp-btn .emoji { font-size: 1.5rem; }
+
+      /* Botón confirmar */
+      .btn-confirm { padding: 0.95rem; font-size: 1rem; }
+
+      /* Compartir */
+      .share-btns { flex-direction: column; align-items: center; }
+      .share-btn { width: 100%; max-width: 280px; justify-content: center; }
+
+      /* Screen 3 — Confirm */
+      #screen-confirm { padding: 1.5rem 0.75rem; }
+      .reaction-stage { height: 130px; }
+      .dance-l, .dance-r { width: 120px; height: 120px; }
+      .sad-bear, .think-bear { width: 130px; height: 130px; }
+      .confirm-msg { font-size: 0.95rem; }
+    }
+
+    /* Pantallas muy pequeñas (≤ 360px — iPhone SE, Galaxy A) */
+    @media (max-width: 360px) {
+      .bear-stage { height: 145px; }
+      .bear-left  { width: 110px; height: 110px; }
+      .bear-right { width: 110px; height: 110px; }
+
+      .card-bears-stage { height: 100px; }
+      .card-bear-l { width: 78px; height: 78px; left: 8%; }
+      .card-bear-r { width: 78px; height: 78px; right: 8%; }
+
+      .invite-card { padding: 1.2rem 0.9rem; }
+      .invite-title { font-size: 1.5rem; }
+
+      .rsvp-btn { font-size: 0.75rem; }
+      .rsvp-btn .emoji { font-size: 1.3rem; }
+
+      /* Team Niño/Niña — stack vertical en pantallas muy chicas */
+      .invite-card > div[style*="justify-content: space-between"] {
+        flex-direction: column; gap: 0.3rem;
+      }
+    }
+
+    /* Asegurar scroll en Screen 2 cuando el contenido es alto */
+    @media (max-height: 700px) {
+      #screen-invite {
+        justify-content: flex-start;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+      }
+      .invite-card { margin: auto; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- GLOBAL SVG FILTERS FOR REALISTIC PLUSH TEXTURE -->
+<svg style="width:0;height:0;position:absolute;" aria-hidden="true">
+  <defs>
+    <filter id="plush-fluff" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="3" result="noise" />
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="5.5" xChannelSelector="R" yChannelSelector="G" result="displaced" />
+      <feGaussianBlur in="displaced" stdDeviation="0.4" result="soft_edge" />
+      <feComposite in2="soft_edge" in="soft_edge" operator="in" result="final" />
+    </filter>
+    
+    <filter id="shadow-blur">
+      <feGaussianBlur stdDeviation="4" />
+    </filter>
+  </defs>
+</svg>
+
+<!-- LOADING -->
+<div id="loading">
+  <div id="loading-bear-container" style="width: 150px; height: 150px;"></div>
+  <div class="loading-text">Preparando algo mágico…</div>
+</div>
+
+<!-- BACKGROUND ELEMENTS -->
+<div class="bg-elements" id="bg-elements"></div>
+<canvas id="particles-canvas"></canvas>
+
+<!-- ======================== SCREEN 1: INTRO ======================== -->
+<div id="screen-intro" class="screen active">
+  <div class="intro-inner" style="position: relative; height: 80vh; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+    
+    <!-- Slideshow Text Elements -->
+    <div class="slide-text" id="slide-1" style="opacity:0; position:absolute; width:100%;">
+      <p class="intro-msg">Damos gracias a dios por este regalo, dos vidas crecen dentro de mami y se alimentan del amor de papi.</p>
+    </div>
+    
+    <div class="slide-text" id="slide-2" style="opacity:0; position:absolute; width:100%;">
+      <h2 class="intro-title" style="font-size: clamp(2rem, 6vw, 3rem); color: #B5835A;">Hola...</h2>
+      <p class="intro-subtitle" style="font-size: 1.8rem; margin-top:0.5rem;">Familia y amigos</p>
+    </div>
+    
+    <div class="slide-text" id="slide-3" style="opacity:0; position:absolute; width:100%;">
+      <p class="intro-msg">Quiero contarles que hace algunos meses estamos creciendo dentro de mi mami y se lo emocionados que están por nuestra llegada.</p>
+    </div>
+    
+    <!-- Bears are always here but invisible initially -->
+    <div class="bear-stage" style="opacity:0; transform:scale(0.8); position:absolute; bottom: 20%;" id="stage-el">
+      <div class="bear-wrap bear-left" id="intro-bear-left" style="opacity:0; transform: translateX(-50px);"></div>
+      <div class="bear-wrap bear-right" id="intro-bear-right" style="opacity:0; transform: translateX(50px);"></div>
+    </div>
+    
+    <div class="slide-text" id="slide-4" style="opacity:0; position:absolute; top: 15%; width:100%;">
+      <p class="intro-msg pink-text">Muchos quieren que seamos niñas...</p>
+    </div>
+    
+    <div class="slide-text" id="slide-5" style="opacity:0; position:absolute; top: 15%; width:100%;">
+      <p class="intro-msg blue-text">al igual que muchos quieren que seamos niños</p>
+    </div>
+    
+    <div class="slide-text" id="slide-6" style="opacity:0; position:absolute; top: 10%; width:100%;">
+      <p class="intro-subtitle" style="font-size: 2rem;">La espera se acabó,</p>
+      <h1 class="intro-title" style="font-size: clamp(1.8rem, 5vw, 2.8rem);">pronto sabrán que somos...</h1>
+      <p style="font-family:'Playfair Display',serif; font-size: clamp(1.4rem,5vw,2rem); margin-top:0.8rem; line-height:1.3;">
+        ¡Es <span style="color:#D4607A; font-weight:700;">Niña</span> o <span style="color:#5B9FD4; font-weight:700;">Niño</span>?
+      </p>
+    </div>
+    
+    <button class="btn-open" id="btn-open" style="opacity:0; position:absolute; bottom: 5%; transform:translateY(20px)">
+      🐻 Abrir Invitación ✨
+    </button>
+  </div>
+</div>
+
+<!-- ======================== SCREEN 2: INVITE ======================== -->
+<div id="screen-invite" class="screen">
+  <div class="invite-card">
+    
+    <div class="invite-tag">✨ Revelación de Sexo ✨</div>
+    <h2 class="invite-title">¡Estás Invitad@!</h2>
+    <div class="invite-subtitle">a descubrir el gran secreto</div>
+
+    <div class="card-bears-stage">
+      <div class="card-bear card-bear-l" id="card-bear-left"></div>
+      <div class="card-bear card-bear-r" id="card-bear-right"></div>
+    </div>
+
+    <div class="event-details">
+      <div class="detail-item">
+        <div class="detail-icon">📅</div>
+        <div class="detail-text"><span>Fecha</span><strong>20 de Diciembre, 2026</strong></div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-icon">🕐</div>
+        <div class="detail-text"><span>Hora</span><strong>1:00 PM</strong></div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-icon">📍</div>
+        <div class="detail-text"><span>Lugar</span><strong>Calle 12 de diciembre #16</strong></div>
+      </div>
+    </div>
+    
+    <div style="margin-bottom: 1.5rem; text-align: center; padding: 1rem; background: rgba(255,255,255,0.6); border-radius: 15px;">
+      <h3 style="font-family: 'Playfair Display', serif; font-size: 1.2rem; color: #3D2B1F; margin-bottom: 0.5rem;">CÓDIGO DE VESTIMENTA</h3>
+      <p style="color: #8C6A53; font-weight: bold; text-transform: uppercase;">Colores Blanco o Beige</p>
+    </div>
+    
+    <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem;">
+      <div style="flex: 1; text-align: center; padding: 0.5rem;">
+        <h4 style="color: #5B9FD4; font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 0.2rem;">TEAM Niño 💙</h4>
+        <p style="font-size: 0.85rem; color: #8C6A53; font-weight: bold;">Lleva Toallitas</p>
+      </div>
+      <div style="flex: 1; text-align: center; padding: 0.5rem;">
+        <h4 style="color: #D4607A; font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 0.2rem;">TEAM Niña 🩷</h4>
+        <p style="font-size: 0.85rem; color: #8C6A53; font-weight: bold;">Lleva Pañales</p>
+      </div>
+    </div>
+
+    <form class="rsvp-form" id="rsvp-form">
+      <div class="form-group">
+        <label class="form-label" for="guest-name">Tu nombre 🐻</label>
+        <input type="text" id="guest-name" class="form-input" placeholder="Escribe tu nombre aquí…" maxlength="50"/>
+        <div class="error-msg" id="name-error">⚠️ Por favor escribe tu nombre</div>
+      </div>
+
+    <div>
+      <span class="form-label">¿Vas a asistir? 🎉</span>
+      <div class="rsvp-buttons">
+        <button type="button" class="rsvp-btn" id="btn-yes" onclick="selectRSVP('yes')">
+          <span class="emoji">💙</span><span>¡Sí!</span>
+        </button>
+        <button type="button" class="rsvp-btn" id="btn-no" onclick="selectRSVP('no')">
+          <span class="emoji">🩷</span><span>No podré</span>
+        </button>
+        <button type="button" class="rsvp-btn" id="btn-maybe" onclick="selectRSVP('maybe')">
+          <span class="emoji">✨</span><span>Tal vez</span>
+        </button>
+      </div>
+    </div>
+    <div class="error-msg" id="rsvp-error">⚠️ Por favor selecciona una opción</div>
+
+    <button type="button" class="btn-confirm" onclick="confirmRSVP()">🐻 Confirmar Asistencia ✨</button>
+  </div>
+</div>
+
+<!-- ======================== SCREEN 3: CONFIRM ======================== -->
+<div id="screen-confirm" class="screen">
+  <div class="hearts-layer" id="hearts-layer"></div>
+  <div class="confirm-inner">
+
+    <!-- YES content -->
+    <div id="yes-content" style="display:none">
+      <div class="reaction-stage">
+        <div class="react-bear dance-l" id="yes-bear-left"></div>
+        <div class="react-bear dance-r" id="yes-bear-right"></div>
+      </div>
+      <div class="confirm-name c-blue" id="yes-name"></div>
+      <h2 class="confirm-title">¡Nos vemos el 20 de diciembre! 🎊</h2>
+      <p class="confirm-msg">Juntos descubriremos si viene un <strong>niño 💙</strong> o una <strong>niña 🩷</strong>.<br><br>¡Te esperamos con los brazos abiertos!</p>
+    </div>
+
+    <!-- NO content -->
+    <div id="no-content" style="display:none">
+      <div class="reaction-stage" style="height:170px;">
+        <div class="react-bear sad-bear" id="no-bear"></div>
+      </div>
+      <div class="confirm-name c-pink" id="no-name"></div>
+      <h2 class="confirm-title">¡Te extrañaremos! 😢</h2>
+      <p class="confirm-msg">Qué pena que no puedas venir, pero te entendemos.<br>Te haremos saber el resultado con mucho cariño 🐻💕</p>
+    </div>
+
+    <!-- MAYBE content -->
+    <div id="maybe-content" style="display:none">
+      <div class="reaction-stage" style="height:170px;">
+        <div class="react-bear think-bear" id="maybe-bear"></div>
+      </div>
+      <div class="confirm-name c-gold" id="maybe-name"></div>
+      <h2 class="confirm-title">¡Ojalá puedas venir! ✨</h2>
+      <p class="confirm-msg">¡Cruza los deditos! 🤞<br>Si algo cambia, ¡avísanos! Te guardamos un lugarito especial 💛</p>
+    </div>
+
+    <div class="share-section">
+      <div class="share-btns">
+        <button class="share-btn wa" onclick="shareWhatsApp()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+          Compartir por WhatsApp
+        </button>
+        <button class="share-btn cp" onclick="copyLink()" id="copy-btn">📋 Copiar link</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== JAVASCRIPT ======================== -->
+<script>
+gsap.registerPlugin(TextPlugin);
+
+// --- BEAR IMAGE + SVG EYE OVERLAY ---
+// Eye positions (as % of 1024x1024 image, normalized 0-1):
+//   Boy bear  (sitting): eyes roughly at 38%,42% and 56%,42% of image
+//   Girl bear (standing): eyes roughly at 38%,34% and 58%,34%
+const eyeData = {
+  boy:  [ {cx: 0.375, cy: 0.415, r: 0.046}, {cx: 0.560, cy: 0.415, r: 0.046} ],
+  girl: [ {cx: 0.365, cy: 0.360, r: 0.048}, {cx: 0.575, cy: 0.340, r: 0.048} ]
+};
+
+function getBearImg(gender) {
+  const src = gender === 'boy' ? 'oso_nino_3d_nobg.png' : 'oso_nina_3d_nobg.png';
+  const eyes = eyeData[gender];
+
+  const lids = eyes.map((e) => {
+    const clip = `ellipse(${e.r * 100 * 1.3}% ${e.r * 100 * 1.3}% at ${e.cx * 100}% ${e.cy * 100}%)`;
+    // We shift the lid div down by 4.5% to grab forehead fur, but wait: 
+    // if we shift the div, the clip-path also shifts! 
+    // We should shift the IMG inside the div, and keep the div stationary.
+    return `
+      <div class="eye-lid" style="position:absolute; top:0; left:0; width:100%; height:100%; clip-path: ${clip}; opacity: 0;">
+        <img src="${src}" style="position:absolute; top:4.5%; left:0; width:100%; height:100%; object-fit:contain; display:block;" />
+        <svg style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;" viewBox="0 0 100 100">
+          <path d="M ${e.cx*100 - 3.5} ${e.cy*100 + 1.5} Q ${e.cx*100} ${e.cy*100 + 4} ${e.cx*100 + 3.5} ${e.cy*100 + 1.5}" stroke="#4A2A18" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div style="position:relative; width:100%; height:100%;">
+      <img src="${src}" style="width:100%; height:100%; object-fit:contain; display:block;" />
+      ${lids}
+    </div>
+  `;
+}
+
+// Eye blinking removed
+
+// INJECT BEARS ON LOAD
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById('loading-bear-container').innerHTML = getBearImg('boy');
+  
+  // Intro screen
+  document.getElementById('intro-bear-left').innerHTML = getBearImg('boy');
+  document.getElementById('intro-bear-right').innerHTML = getBearImg('girl');
+
+  // Invite card
+  document.getElementById('card-bear-left').innerHTML = getBearImg('boy');
+  document.getElementById('card-bear-right').innerHTML = getBearImg('girl');
+
+  // Reaction bears
+  document.getElementById('yes-bear-left').innerHTML = getBearImg('boy');
+  document.getElementById('yes-bear-right').innerHTML = getBearImg('girl');
+  
+  document.getElementById('no-bear').innerHTML = getBearImg('girl');
+  document.getElementById('maybe-bear').innerHTML = getBearImg('boy');
+
+  // Add background floating elements
+  const bgEl = document.getElementById('bg-elements');
+  const emojis = ['⭐', '✨', '💫', '🐻', '🐾', '🤍'];
+  for (let i = 0; i < 28; i++) {
+    const el = document.createElement('div');
+    el.className = 'bg-floating-item';
+    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    el.style.left = Math.random() * 100 + '%';
+    el.style.top = '0';
+    el.style.animationDuration = (Math.random() * 20 + 15) + 's';
+    el.style.animationDelay = '-' + (Math.random() * 30) + 's';
+    el.style.fontSize = (Math.random() * 1.2 + 1) + 'rem';
+    bgEl.appendChild(el);
+  }
+});
+
+
+// ---- PARTICLES ----
+const canvas = document.getElementById('particles-canvas');
+const ctx = canvas.getContext('2d');
+let parts = [];
+function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+class Particle {
+  constructor() { this.reset(); }
+  reset() {
+    this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height;
+    this.r = Math.random() * 3 + 1;
+    this.vx = (Math.random() - 0.5) * 0.4; this.vy = (Math.random() - 0.5) * 0.4;
+    const p = Math.random();
+    this.color = p < 0.33 ? `rgba(212,96,122,${Math.random()*0.3+0.1})` : p < 0.66 ? `rgba(91,159,212,${Math.random()*0.3+0.1})` : `rgba(212,175,55,${Math.random()*0.2+0.05})`;
+  }
+  update() {
+    this.x += this.vx; this.y += this.vy;
+    if (this.x<0||this.x>canvas.width||this.y<0||this.y>canvas.height) this.reset();
+  }
+  draw() {
+    ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI*2); ctx.fillStyle = this.color; ctx.fill();
+  }
+}
+for (let i = 0; i < 60; i++) parts.push(new Particle());
+function animParts() { ctx.clearRect(0,0,canvas.width,canvas.height); parts.forEach(p=>{p.update();p.draw();}); requestAnimationFrame(animParts); }
+animParts();
+
+
+// ---- LOADING & INTRO ANIMATION ----
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    gsap.to('#loading', { opacity: 0, duration: 0.8, onComplete: () => {
+      document.getElementById('loading').style.display = 'none';
+      startIntro();
+    }});
+  }, 1500);
+});
+
+function startIntro() {
+  const tl = gsap.timeline();
+  const readTime = "+=2.8"; // time to read each phrase
+
+  tl.fromTo('#slide-1', { y: 20 }, { opacity: 1, y: 0, duration: 1.2, ease: 'power2.out' })
+    .to('#slide-1', { opacity: 0, y: -20, duration: 0.8 }, readTime)
+    
+    .fromTo('#slide-2', { scale: 0.9 }, { opacity: 1, scale: 1, duration: 1.2, ease: 'power2.out' })
+    .to('#slide-2', { opacity: 0, scale: 1.1, duration: 0.8 }, readTime)
+    
+    .fromTo('#slide-3', { y: 20 }, { opacity: 1, y: 0, duration: 1.2, ease: 'power2.out' })
+    .to('#slide-3', { opacity: 0, y: -20, duration: 0.8 }, readTime)
+    
+    // Show the bear stage background elements
+    .to('#stage-el', { opacity: 1, scale: 1, duration: 1 })
+    
+    // Slide 4: "Muchos quieren que seamos niñas..." + show girl bear
+    .fromTo('#slide-4', { y: 20 }, { opacity: 1, y: 0, duration: 1 }, "-=0.5")
+    .to('#intro-bear-right', { opacity: 1, x: 0, duration: 1.2, ease: 'back.out(1.4)' }, "-=1")
+    .to('#slide-4', { opacity: 0, duration: 0.8 }, "+=2.2")
+    
+    // Slide 5: "al igual que muchos quieren que seamos niños" + show boy bear
+    .fromTo('#slide-5', { y: 20 }, { opacity: 1, y: 0, duration: 1 })
+    .to('#intro-bear-left', { opacity: 1, x: 0, duration: 1.2, ease: 'back.out(1.4)' }, "-=1")
+    .to('#slide-5', { opacity: 0, duration: 0.8 }, "+=2.2")
+    
+    // Slide 6: "La espera se acabó..."
+    .fromTo('#slide-6', { scale: 0.9 }, { opacity: 1, scale: 1, duration: 1.2, ease: 'power2.out' })
+    
+    // Finally, the button
+    .to('#btn-open', { opacity: 1, y: 0, duration: 0.8, ease: 'back.out(1.5)' }, "+=1");
+}
+
+// ---- NAVIGATION & FORM ----
+document.getElementById('btn-open').addEventListener('click', () => {
+  const intro = document.getElementById('screen-intro');
+  const invite = document.getElementById('screen-invite');
+  gsap.to(intro, {
+    opacity:0, scale:0.95, duration:0.6, ease:'power2.in',
+    onComplete: () => {
+      intro.classList.remove('active'); intro.style.transform = '';
+      invite.classList.add('active');
+      gsap.fromTo('.invite-card', { opacity:0, y:50 }, { opacity:1, y:0, duration:0.8, ease:'back.out(1.2)' });
+    }
+  });
+});
+
+let selectedRSVP = null;
+let guestName = '';
+
+function selectRSVP(ch) {
+  selectedRSVP = ch;
+  ['yes','no','maybe'].forEach(v => document.getElementById('btn-'+v).classList.remove(`sel-${v}`));
+  document.getElementById('btn-'+ch).classList.add(`sel-${ch}`);
+  document.getElementById('rsvp-error').classList.remove('show');
+}
+
+function confirmRSVP() {
+  const nameInput = document.getElementById('guest-name');
+  let valid = true;
+  if (!nameInput.value.trim()) {
+    document.getElementById('name-error').classList.add('show');
+    gsap.fromTo(nameInput, {x:-5}, {x:5, duration:0.08, repeat:5, yoyo:true});
+    valid = false;
+  } else { document.getElementById('name-error').classList.remove('show'); }
+  if (!selectedRSVP) { document.getElementById('rsvp-error').classList.add('show'); valid = false; } 
+  else { document.getElementById('rsvp-error').classList.remove('show'); }
+  if (!valid) return;
+  
+  guestName = nameInput.value.trim();
+
+  const invite = document.getElementById('screen-invite');
+  gsap.to(invite, {
+    opacity: 0, scale: 0.95, duration: 0.5, ease: 'power2.in',
+    onComplete: () => {
+      invite.classList.remove('active');
+
+      // Ocultar todos los contenidos de confirmación
+      document.getElementById('yes-content').style.display = 'none';
+      document.getElementById('no-content').style.display = 'none';
+      document.getElementById('maybe-content').style.display = 'none';
+
+      // Configurar y mostrar screen-confirm
+      const c = document.getElementById('screen-confirm');
+      c.className = 'screen';
+
+      if (selectedRSVP === 'yes') {
+        c.style.background = 'linear-gradient(155deg,#EAF4FB 0%,#FDF4F6 100%)';
+        document.getElementById('yes-content').style.display = 'block';
+        document.getElementById('yes-name').textContent = guestName;
+      } else if (selectedRSVP === 'no') {
+        c.style.background = '#FDF4F6';
+        document.getElementById('no-content').style.display = 'block';
+        document.getElementById('no-name').textContent = guestName;
+      } else {
+        c.style.background = 'linear-gradient(155deg,#FFFBE6 0%,#FDF4F6 100%)';
+        document.getElementById('maybe-content').style.display = 'block';
+        document.getElementById('maybe-name').textContent = guestName;
+      }
+
+      // Activar screen y animar entrada
+      c.classList.add('active');
+      gsap.fromTo('.confirm-inner > *', 
+        { opacity: 0, y: 30 }, 
+        { opacity: 1, y: 0, stagger: 0.15, duration: 0.7, ease: 'back.out(1.2)' }
+      );
+
+      if (selectedRSVP === 'yes') {
+        setTimeout(launchConfetti, 300);
+        setTimeout(() => floatHearts(['💙','🩷','🐻','✨','🎉','🎊']), 500);
+      } else if (selectedRSVP === 'maybe') {
+        setTimeout(() => floatHearts(['💛','✨','🐻','💫']), 500);
+      }
+    }
+  });
+}
+
+// ---- EFFECTS ----
+function launchConfetti() {
+  const colors = ['#F4A7B9','#A7C7E7','#D4AF37','#E07B9A','#5B9FD4'];
+  const end = Date.now() + 3500;
+  (function frame() {
+    confetti({ particleCount:5, angle:60, spread:55, origin:{x:0}, colors });
+    confetti({ particleCount:5, angle:120, spread:55, origin:{x:1}, colors });
+    if (Date.now() < end) requestAnimationFrame(frame);
+  })();
+  setTimeout(() => confetti({ particleCount:100, spread:100, origin:{x:0.5,y:0.6}, colors }), 400);
+}
+
+function floatHearts(emojis) {
+  const container = document.getElementById('hearts-layer');
+  for (let i = 0; i < 20; i++) {
+    setTimeout(() => {
+      const h = document.createElement('div'); h.className = 'fheart';
+      h.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+      h.style.left = Math.random()*100+'%';
+      h.style.fontSize = (Math.random()*1.5+1)+'rem';
+      h.style.animationDuration = (Math.random()*3+4)+'s';
+      container.appendChild(h);
+      setTimeout(() => h.remove(), 8000);
+    }, i*250);
+  }
+}
+
+// ---- SHARE ----
+function shareWhatsApp() {
+  const t = encodeURIComponent('🐻✨ ¡Estás invitado a nuestra Revelación de Sexo! 🩷💙\n\n📅 20 de diciembre de 2026\n🕐 1:00 PM\n📍 Calle 12 de diciembre #16\n\n¡Confirma tu asistencia! 🎊');
+  window.open(`https://wa.me/?text=${t}`, '_blank');
+}
+function copyLink() {
+  const t = '🐻✨ ¡Estás invitado a nuestra Revelación de Sexo!\n📅 20 de diciembre de 2026 | 🕐 1:00 PM | 📍 Calle 12 de diciembre #16';
+  navigator.clipboard.writeText(t).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = '✅ ¡Copiado!';
+    setTimeout(() => { btn.textContent = '📋 Copiar link'; }, 2000);
+  });
+}
+</script>
+</body>
+</html>
