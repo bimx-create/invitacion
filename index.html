@@ -372,10 +372,9 @@
   </defs>
 </svg>
 
-<!-- LOADING -->
-<div id="loading">
-  <div id="loading-bear-container" style="width: 150px; height: 150px;"></div>
-  <div class="loading-text">Preparando algo mágico…</div>
+<!-- LOADING / START SCREEN -->
+<div id="loading" style="cursor: pointer;" onclick="startExperience()">
+  <div class="loading-text" style="font-size: 2.5rem; text-align: center; padding: 1rem;">Toca para abrir 🐻✨</div>
 </div>
 
 <!-- BACKGROUND ELEMENTS -->
@@ -388,12 +387,12 @@
     
     <!-- Slideshow Text Elements -->
     <div class="slide-text" id="slide-1" style="opacity:0; position:absolute; width:100%;">
-      <p class="intro-msg">Damos gracias a dios por este regalo, dos vidas crecen dentro de mami y se alimentan del amor de papi.</p>
+      <h2 class="intro-title" style="font-size: clamp(2rem, 6vw, 3rem); color: #B5835A;">Hola...</h2>
+      <p class="intro-subtitle" style="font-size: 1.8rem; margin-top:0.5rem;">Familia y amigos</p>
     </div>
     
     <div class="slide-text" id="slide-2" style="opacity:0; position:absolute; width:100%;">
-      <h2 class="intro-title" style="font-size: clamp(2rem, 6vw, 3rem); color: #B5835A;">Hola...</h2>
-      <p class="intro-subtitle" style="font-size: 1.8rem; margin-top:0.5rem;">Familia y amigos</p>
+      <p class="intro-msg">Damos gracias a dios por este regalo, dos vidas crecen dentro de mami y se alimentan del amor de papi.</p>
     </div>
     
     <div class="slide-text" id="slide-3" style="opacity:0; position:absolute; width:100%;">
@@ -452,7 +451,7 @@
       </div>
       <div class="detail-item">
         <div class="detail-icon">📍</div>
-        <div class="detail-text"><span>Lugar</span><strong>Calle 12 de diciembre #16</strong></div>
+        <div class="detail-text"><span>Lugar</span><strong>Calle 12 de diciembre #16, Zacamulpa, Huixquilucan</strong></div>
       </div>
     </div>
     
@@ -529,19 +528,8 @@
       </div>
     </div>
 
-    <!-- SPOTIFY -->
-    <div style="margin-bottom:1.5rem; border-radius:16px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.08);">
-      <div style="background:linear-gradient(135deg,rgba(244,167,185,0.15),rgba(167,199,231,0.15)); padding:0.6rem 0.6rem 0.4rem; text-align:center;">
-        <p style="font-size:0.72rem; font-weight:700; color:#9C6B37; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:0.4rem;">🎵 Nuestra canción</p>
-      </div>
-      <iframe
-        src="https://open.spotify.com/embed/track/7tgR5zkdJzZc5OgMBwhwwx?utm_source=generator&theme=0"
-        width="100%" height="80" frameborder="0"
-        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-        loading="lazy"
-        style="display:block;">
-      </iframe>
-    </div>
+    <!-- MÚSICA DE FONDO -->
+    <audio id="bg-music" src="Tarzán - En Mi Corazón Vivirás (By_ Phil Collins) (Letra).mp3" loop preload="auto"></audio>
 
 
     <form class="rsvp-form" id="rsvp-form">
@@ -584,7 +572,7 @@
       </div>
       <div class="confirm-name c-blue" id="yes-name"></div>
       <h2 class="confirm-title">¡Nos vemos el 20 de diciembre! 🎊</h2>
-      <p class="confirm-msg">Juntos descubriremos si viene un <strong>niño 💙</strong> o una <strong>niña 🩷</strong>.<br><br>¡Te esperamos con los brazos abiertos!</p>
+      <p class="confirm-msg">Juntos lo descubriremos.<br><br>¡Te esperamos con los brazos abiertos!</p>
     </div>
 
     <!-- NO content -->
@@ -604,7 +592,7 @@
       </div>
       <div class="confirm-name c-gold" id="maybe-name"></div>
       <h2 class="confirm-title">¡Ojalá puedas venir! ✨</h2>
-      <p class="confirm-msg">¡Cruza los deditos! 🤞<br>Si algo cambia, ¡avísanos! Te guardamos un lugarito especial 💛</p>
+      <p class="confirm-msg">¡Cruza los deditos! 🤞<br>Si algo cambia, ¡avísanos! Te guardamos un lugar especial 💛</p>
     </div>
 
     <div class="share-section">
@@ -663,8 +651,6 @@ function getBearImg(gender) {
 
 // INJECT BEARS ON LOAD
 document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById('loading-bear-container').innerHTML = getBearImg('boy');
-  
   // Intro screen
   document.getElementById('intro-bear-left').innerHTML = getBearImg('boy');
   document.getElementById('intro-bear-right').innerHTML = getBearImg('girl');
@@ -727,14 +713,15 @@ animParts();
 
 
 // ---- LOADING & INTRO ANIMATION ----
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    gsap.to('#loading', { opacity: 0, duration: 0.8, onComplete: () => {
-      document.getElementById('loading').style.display = 'none';
-      startIntro();
-    }});
-  }, 1500);
-});
+function startExperience() {
+  const bgMusic = document.getElementById('bg-music');
+  bgMusic.play().catch(e => console.log('Auto-play prevent:', e));
+  
+  gsap.to('#loading', { opacity: 0, duration: 0.8, onComplete: () => {
+    document.getElementById('loading').style.display = 'none';
+    startIntro();
+  }});
+}
 
 function startIntro() {
   const tl = gsap.timeline();
@@ -806,6 +793,25 @@ function confirmRSVP() {
   if (!valid) return;
   
   guestName = nameInput.value.trim();
+
+  // Guardar en Google Forms silenciosamente
+  const formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfRxtzezibYdnSBQtbwup-er8TpexxUUT5ve8dexx21T7chdQ/formResponse';
+  const formData = new FormData();
+  formUrl.replace('/viewform', '/formResponse');
+  
+  formData.append('entry.2133645102', guestName);
+  
+  let rsvpStatus = 'Pendiente de confirmar';
+  if (selectedRSVP === 'yes') rsvpStatus = 'Confirmado';
+  if (selectedRSVP === 'no') rsvpStatus = 'No asistiré';
+  
+  formData.append('entry.189274955', rsvpStatus);
+
+  fetch(formUrl, {
+    method: 'POST',
+    mode: 'no-cors',
+    body: formData
+  }).catch(err => console.log('Form save background err:', err));
 
   const invite = document.getElementById('screen-invite');
   gsap.to(invite, {
